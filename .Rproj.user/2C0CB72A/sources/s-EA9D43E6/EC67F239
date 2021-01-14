@@ -1,0 +1,24 @@
+{
+    "id": "EC67F239",
+    "path": "~/R/persistent-db-stats-app/app.R",
+    "project_path": null,
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1610027859683.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "cursorPosition": "396,17",
+        "scrollLine": "370"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1610121752,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1610121752789,
+    "read_only": false,
+    "read_only_alternatives": []
+}

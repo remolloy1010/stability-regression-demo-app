@@ -1,0 +1,51 @@
+---
+title: "Stability Regression Analysis Report"
+output: pdf_document
+params:
+  CI: NA,
+  threshold: NA,
+  fullDT: NA,
+  meltedDT: NA,
+  shelf_life: NA,
+  shelf_life_lower: NA
+---
+
+# _**Settings Selected for Analysis:**_
+
+## Confidence Interval:
+`r params$CI`
+
+## % of 4C MFI Threshold:
+`r params$threshold`%
+
+# _**% of 4C MFI Stability Data:**_
+
+```{r, message = FALSE, echo = FALSE}
+library(knitr)
+full_data_df <- params$fullDT
+names(full_data_df)[1:8] <- c("Time (yr)", "30 ng/test", "60 ng/test", "125 ng/test", "250 ng/test", "500 ng/test", "1000 ng/test", "2000 ng/test")
+kable(full_data_df, caption = '% of 4C MFI Reference Data at each Concentration')
+```
+
+# _**Linear Regression Analysis with 95% Confidence:**_
+```{r, message = FALSE, echo = FALSE}
+ggplot(params$meltedDT, aes(x=Time, y=value, color=Concentrations)) + 
+            geom_smooth(data=params$meltedDT, aes(x=Time, y=value), formula = y ~ x, method="lm", col = "red", level=as.numeric(params$CI)) +
+            geom_point(size=10) + # plot with keep dataset points filled in only
+            geom_point(data = params$meltedDT, size = 10, shape = 21, fill = NA, color = 'black') +
+            labs(x = "Time (years)",
+                          y = "% of 4C Reference MFI") +
+                     theme_minimal() +
+                     scale_color_brewer(palette = 'Reds', na.translate = F,
+                                        labels = unique(params$meltedDT$Labels)
+                                        # labels = c("30 ng/test", '60 ng/test', '125 ng/test', '250 ng/test', '500 ng/test', '1000 ng/test', '2000 ng/test')
+                     )
+```
+
+# _**Predicted Shelf-Life:**_
+
+### Based on Linear Regression:
+`r params$shelf_life` years
+
+### Based on Linear Regression at Lower 95% Confidence:
+`r params$shelf_life_lower` years

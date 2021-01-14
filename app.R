@@ -237,30 +237,30 @@ server = function(input, output) {
     
     ################## R Markdown Report ######################
     output$report <- downloadHandler(
+        
         # For PDF output, change this to "report.pdf"
         filename = "report.pdf",
         content = function(file) {
-
+            # Copy the report file to a temporary directory before processing it, in
+            # case we don't have write permissions to the current working dir (which
+            # can happen when deployed).
             tempReport <- file.path(tempdir(), "report.Rmd")
             file.copy("report.Rmd", tempReport, overwrite = TRUE)
             
             # Set up parameters to pass to Rmd document
-            params <- list(param2 = input$CI,
-                           param3 = df_products_upload(),
-                           param4 = full_data_table(),
-                           param5 = threshold_y(),
-                           param6 = melted_data_table(),
-                           param7 = regression_data_table(),
-                           param8 = confidence_intervals(),
-                           param9 = createPlot(melted_data_table(), regression_data_table(), as.numeric(confidenceInterval())))
+            params <- list(CI = input$CI,
+                           threshold = input$threshold,
+                           fullDT = full_data_table(),
+                           meltedDT = melted_data_table(),
+                           shelf_life = summarizeData(melted_data_table(), as.numeric(input$threshold)),
+                           shelf_life_lower = confidence_intervals()
+            )
             
-            # Knit the document, passing in the `params` list, and eval it in a
-            # child of the global environment (this isolates the code in the document
-            # from the code in this app).
-            rmarkdown::render(tempReport, output_file = file,
+            rmarkdown::render(tempReport, output_format = "pdf_document", output_file = file,
                               params = params,
                               envir = new.env(parent = globalenv())
             )
+            
         }
     )
 }

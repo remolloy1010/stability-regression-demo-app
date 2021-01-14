@@ -1,0 +1,134 @@
+library(stringr)
+# 
+# ls_df <- data.frame('files'=list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\temp-ex'), stringsAsFactors = FALSE)
+# df <- read.csv('all_stats.csv', stringsAsFactors = FALSE)
+# df2 <- data.frame('Filenames'=NA,'Image Names'=NA,'wellIDs'=paste0(df$Row, df$Plate.Column),df$pop)
+# 
+# ##### MAP FCS FILENAMES TO DATAFRAME #####
+# for(file in ls_df$files){
+#     for(well in df2$wellIDs){
+#         if(grepl(paste0(well,'_'),file,fixed=TRUE)){
+#             df2$Filenames[df2$wellIDs == well] <- file
+#         }
+# 
+#     }
+# }
+# df2
+# 
+# png_df <- data.frame('files'=list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\plots_folder'), stringsAsFactors = FALSE)
+# plots_df <- data.frame(cbind(str_split_fixed(png_df$files,'_',7), Filenames=png_df$files), stringsAsFactors = FALSE)
+# names(plots_df)[1:8] <- c("PlateID","Wells","Wells2","Suffix1","Suffix2","pops","Suffix3","Filenames")
+# plots_df
+# 
+# LMG <- subset(plots_df, plots_df$pops == 'Gran' | plots_df$pops == 'Lymph' | plots_df$pops == 'Mono')
+# 
+# # df <- read.csv(stats_file, stringsAsFactors = FALSE)
+# # df2 <- df2
+# 
+# ##### MAP FCS FILENAMES TO DATAFRAME #####
+# for(row in 1:nrow(LMG)){
+#     for(row2 in 1:nrow(df2)){
+#         if(LMG$Wells[[row]] == df2$wellIDs[[row2]] & LMG$pops[[row]] == df2$df.pop[[row2]]){
+#             df2$Image.Names[df2$wellIDs == df2$wellIDs[[row2]] & df2$df.pop == df2$df.pop[[row2]]] <- LMG$Filenames[[row]]
+#         }
+# 
+#     }
+# }
+# df2
+
+############################################################################################################
+############################################################################################################
+############################################################################################################
+
+
+
+
+map_fcs_filenames <- function(fcs_files, stats_file){
+    
+    
+    ls_df <- data.frame('files'=c(fcs_files), stringsAsFactors = FALSE)
+    df <- read.csv(stats_file, stringsAsFactors = FALSE)
+    df2 <- data.frame('Filenames'=NA,'Image Names'=NA,'wellIDs'=paste0(df$Row, df$Plate.Column),df$pop)
+    
+    ##### MAP FCS FILENAMES TO DATAFRAME #####
+    for(file in ls_df$files){
+        for(well in df2$wellIDs){
+            if(grepl(paste0(well,'_'),file,fixed=TRUE)){
+                df2$Filenames[df2$wellIDs == well] <- file
+            }
+            
+        }
+    }
+    df2
+    return(df2)
+    
+}
+
+# fcs_df_output <- map_fcs_filenames()
+
+map_image_filenames <- function(image_files, stats_file, fcs_df_output){
+    
+    # plots <- list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\plots_folder')
+    png_df <- data.frame('files'=c(image_files))
+    png_df
+    plots_df <- data.frame(cbind(str_split_fixed(png_df$files,'_',7), Filenames=png_df$files), stringsAsFactors = FALSE)
+    plots_df
+    names(plots_df)[1:8] <- c("PlateID","Wells","Wells2","Suffix1","Suffix2","pops","Suffix3","Filenames")
+    plots_df
+    print(plots_df)
+    
+    LMG <- subset(plots_df, plots_df$pops == 'Gran' | plots_df$pops == 'Lymph' | plots_df$pops == 'Mono')
+    
+    # df <- read.csv(stats_file, stringsAsFactors = FALSE)
+    df2 <- fcs_df_output
+    
+    ##### MAP FCS FILENAMES TO DATAFRAME #####
+    for(row in 1:nrow(LMG)){
+        for(row2 in 1:nrow(df2)){
+            if(LMG$Wells[[row]] == df2$wellIDs[[row2]] & LMG$pops[[row]] == df2$df.pop[[row2]]){
+                df2$Image.Names[df2$wellIDs == df2$wellIDs[[row2]] & df2$df.pop == df2$df.pop[[row2]]] <- LMG$Filenames[[row]]
+            }
+            
+        }
+    }
+    df2
+    return(df2)
+}
+# 
+# # Get list of filenames
+# ls_df <- data.frame('files'=list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\temp-ex'), stringsAsFactors = FALSE)
+# plots <- list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\plots_folder')
+# png_df <- data.frame('files'=plots)
+# plots_df <- data.frame(cbind(str_split_fixed(png_df$files,'_',7), Filenames=plots), stringsAsFactors = FALSE)
+# names(plots_df)[1:8] <- c("PlateID","Wells","Wells2","Suffix1","Suffix2","pops","Suffix3","Filenames")
+# plots_df
+# 
+# LMG <- subset(plots_df, plots_df$pops == 'Gran' | plots_df$pops == 'Lymph' | plots_df$pops == 'Mono')
+# 
+# df <- read.csv('all_stats.csv', stringsAsFactors = FALSE)
+# 
+# 
+# 
+# df2 <- data.frame('Filenames'=NA,'Image Names'=NA,'wellIDs'=paste0(df$Row, df$Plate.Column),df$pop)
+# 
+# 
+# ######### MAP PLOT FILENAMES TO WELL IDS #################
+# for(row in 1:nrow(LMG)){
+#     for(row2 in 1:nrow(df2)){
+#         if(LMG$Wells[[row]] == df2$wellIDs[[row2]] & LMG$pops[[row]] == df2$df.pop[[row2]]){
+#             df2$Image.Names[df2$wellIDs == df2$wellIDs[[row2]] & df2$df.pop == df2$df.pop[[row2]]] <- LMG$Filenames[[row]]
+#         }
+# 
+#     }
+# }
+# df2
+# for(file in ls_df$files){
+#     for(well in df2$wellIDs){
+#         if(grepl(paste0(well,'_'),file,fixed=TRUE)){
+#             df2$Filenames[df2$wellIDs == well] <- file
+#         }
+# 
+#     }
+# }
+# df2
+# 

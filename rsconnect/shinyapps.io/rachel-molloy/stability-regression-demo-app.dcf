@@ -5,8 +5,8 @@ account: rachel-molloy
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3437488
-bundleId: 4065920
+bundleId: 4096392
 url: https://rachel-molloy.shinyapps.io/stability-regression-demo-app/
-when: 1609966156.29251
+when: 1610641869.80608
 asMultiple: FALSE
 asStatic: FALSE

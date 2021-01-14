@@ -1,0 +1,278 @@
+library(tibble)
+library(dplyr)
+library(tidyverse)
+
+
+plots <- list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\plots_folder')
+plots
+files <- list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\temp-ex')
+# df <- read.csv('all_stats.csv')
+# df
+# wellIDs <- paste0(df$Row, df$Plate.Column)
+# wellIDs
+# Step 1: Create list of Well IDs, Plate Rows, and Plate Columns
+create_fcs_filenames <- function(files, stats_file){
+    
+    df <- read.csv('all_stats.csv', stringsAsFactors = FALSE)
+
+    wellIDs <- paste0(df$Row, df$Plate.Column)
+    
+    wellPlateInfo <- data.frame(cbind('Filenames'=NA, wellIDs), stringsAsFactors = FALSE)
+
+    for(file in files){
+        for(well in wellIDs){
+            if(grepl(paste0(well,'_'),file,fixed=TRUE)){
+                
+                wellPlateInfo$Filenames[wellIDs == well] <- file
+            }
+            
+        }
+    }
+    wellPlateInfo
+
+    return(wellPlateInfo)
+}
+
+create_png_filenames <- function(files, stats_file){
+    
+    df <- read.csv('all_stats.csv')
+    df
+    
+    # df <- read.csv(stats_file, stringsAsFactors = FALSE)
+    files <- list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\plots_folder')
+    files
+    
+    wellIDs <- paste0(df$Row, df$Plate.Column)
+    df$pop
+    wellPlateInfo <- data.frame(cbind('Filenames'=files[1:252], wellIDs, 'Pop'=as.character(df$pop)), stringsAsFactors = FALSE)
+    wellPlateInfo
+    
+    
+    
+    # for(file in files){
+    #     for(well in wellIDs){
+    #         for(pop_i in df$pop){
+    #             print(pop_i)
+    #             if(grepl(paste0(well,'_'),file,fixed=TRUE) && (grepl(pop_i,file,fixed=TRUE))){
+    # 
+    #                 wellPlateInfo$Filenames[wellIDs == well] <- file
+    #             }
+    #             else{
+    #                 return('skip')
+    #             }
+    #         }
+    #         
+    #         
+    #     }
+    # }
+    
+    numOfColumns=c(1:12)
+    wellPlateInfo <- data.frame("Well ID"=NA, "Plate Row"=NA, "Plate Column"=NA)
+    controlRowList <- c("NA","A", "B", "C", "D", "E", "F", "G", "H")
+    
+    for (plateRow in controlRowList[2:length(controlRowList)]){
+        for (plateCol in numOfColumns){
+            wellPlateInfo <- add_row(wellPlateInfo, Well.ID=paste0(plateRow,plateCol), Plate.Row=plateRow, Plate.Column=plateCol)
+            
+            
+        }
+    }
+    
+    wellPlateInfo <- drop_na(wellPlateInfo)
+    wellPlateInfo
+    
+    DF <- data.frame(a=c('2020_A1_Mono', '2020_A1_Lymph','2020_A1_Gran'), b=c('A1','A1','A1'), c=c('Lymph','Gran','Mono'))
+    DF
+    well_ids <- data.frame('wells'=c('A1','A2','A3'))
+    well_ids
+    pops <- data.frame('pops'=c('Lymph','Mono','Gran'))
+    new_df <- data.frame('Files'=NA,well_ids,pops)
+    new_df
+    
+    for(file in DF$a){
+         for(well in wellPlateInfo$Well.ID){
+                 for(pop in DF$c){
+                         print(pop)
+                         if(grepl(well,file,fixed=TRUE)){
+                                 print(new_df$files[well_ids == well])
+                                print(well)
+                                print(file)
+                                print(pop)
+                             if(grepl(pop,file,fixed=TRUE)){
+                                 print(pop)
+                                 new_df$files[well_ids == well && pops == pop] <- file
+                             }
+                                 
+                                 print(new_df)
+                             }
+                     }
+             }
+    }
+    
+    DF <- data.frame(a=c('2020_A1_Mono', '2020_A1_Lymph','2020_A1_Gran','2020_A2_Mono', '2020_A2_Lymph','2020_A2_Gran','2020_A3_Mono', '2020_A3_Lymph','2020_A3_Gran'),
+                     # b=c('A1','A1','A1','A2','A2','A2','A3','A3','A3'), 
+                     b=c('A1','A2','A3'), 
+                     c=c('Lymph','Gran','Mono'))
+    DF
+    well_ids <- data.frame('wells'=c('A1','A2','A3'))
+    well_ids
+    pops <- data.frame('pops'=c('Lymph','Mono','Gran'))
+    new_df <- data.frame('Files'=rep(NA,20),'wells'=rep(NA,20),'pops'=rep(NA,20))
+    new_df
+    i = 1
+    for(file in DF$a){
+        for(pop in DF$c){
+            for(well in wellPlateInfo$Well.ID){
+                if( (grepl(pop,file,fixed=TRUE)) & (grepl(well,file,fixed=TRUE))){
+                    print(i)
+                    g <- grepl(pop,file,fixed=TRUE)
+                    print(file[g])
+                    print(pop[g])
+                    print(well[g])
+                    new_df$Files[[i]] <- file[g]
+                    new_df$wells[[i]] <- well[g]
+                    new_df$pops[[i]] <- pop[g]
+                    print(new_df)
+
+                    print('-----------')
+                    i = i + 1
+                    print(i)
+                        # new_df$Files <- file
+                        # new_df$pops <- pop
+                        # new_df$wells <- well
+                        # new_df$files[pops == pop] <- file
+                    }
+                    
+                    # print(new_df)
+                }
+            # }
+        }
+    }
+    
+    new_df
+    wellPlateInfo
+    
+    return(wellPlateInfo)
+}
+
+# config_96wellplate(files, wellIDs)
+
+create_stats_df <- function(fileInput, fcs_files){
+    
+    metadata_tibble <- tibble(read.csv(fileInput), stringsAsFactors=FALSE)
+    
+    metadata_tibble <- tibble(read.csv('all_stats.csv'), stringsAsFactors=FALSE)
+    metadata_tibble
+    
+    len_metadata_tibble <- dim(metadata_tibble)[[1]]
+    
+    test_or_ref <- ifelse(sapply(tibble(test_or_ref=rep(NA, len_metadata_tibble)), function(i) as.character(metadata_tibble$Row) == as.character(metadata_tibble$Control.Row)),'Isotype', 'Sample')
+    
+    MFI_neg_ab <- ifelse(sapply(tibble(MFI_neg_ab=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Sample'),metadata_tibble$MFI..1, 0)
+    MFI_neg_iso <- ifelse(sapply(tibble(MFI_neg_iso=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype'),metadata_tibble$MFI., 0)
+    
+    MFI_pos <- c(metadata_tibble$MFI.)
+    dim(MFI_pos) <- c(len_metadata_tibble,1)
+    
+    MFI_total_ab <- sapply(tibble(MFI_total_ab=rep(NA, len_metadata_tibble)), function(i) as.numeric(MFI_pos) + -as.numeric(MFI_neg_ab))
+    MFI_total_iso <- sapply(tibble(MFI_total_iso=rep(NA, len_metadata_tibble)), function(i) as.numeric(MFI_pos) + -as.numeric(MFI_neg_iso))
+    
+    rSD_neg_ab <- ifelse(sapply(tibble(rSD_neg_ab=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Sample'),metadata_tibble$rSD., 0)
+    rSD_neg_iso <- ifelse(sapply(tibble(rSD_neg_iso=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype'),metadata_tibble$rSD., 0)
+    rSD_total_iso <- sapply(tibble(MFI_total_iso=rep(NA, len_metadata_tibble)), function(i) as.numeric(MFI_pos) + -as.numeric(MFI_neg_iso))
+    
+    well_ID <- ifelse(sapply(tibble(well_ID=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype'),metadata_tibble$Well.ID <- paste0(metadata_tibble$Row,metadata_tibble$Plate.Column), metadata_tibble$Well.ID)
+    well_ID
+
+    Specificity <- ifelse(sapply(tibble(Specificity=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype'),as.character(metadata_tibble$Isotype.Host.Species), as.character(metadata_tibble$Specificity..CD.))
+    Specificity
+    
+    Clone <- ifelse(sapply(tibble(Clone=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype'),NA, as.character(metadata_tibble$Clone))
+    Clone
+    
+    df_new <- data.frame(well_ID=well_ID,pops=metadata_tibble$pop,image_files=rep(NA,length(well_ID)))
+    df_new
+    # both <- sapply(tibble(both=rep(NA, len_metadata_tibble)), function(i) )
+    both <- data.frame('both'=paste0(well_ID,'_',metadata_tibble$pop))
+    both
+    
+    for(file in list.files('C:\\Users\\10294643\\Desktop\\Rotation 2 - San Diego\\OMIQ\\v1_2_2\\v1_2_2\\2020-07-09-RB-003\\plots_folder')){
+
+                for(well in well_ID){
+                    if( (grepl(paste0(well,'_'),file,fixed=TRUE))){
+                        for(pop in unique(metadata_tibble$pop)){
+                            if((grepl(pop,file,fixed=TRUE))){
+                                print(paste(well,'---',pop,'---',file))
+                                df_new$image_files[(well_ID == well) & (pops == pop)] <- file
+                    }
+                }
+                # print(paste(pop,'---',file))
+            }
+        }
+        # for(well in well_ID){
+        #     if( (grepl(paste0(well,'_'),file,fixed=TRUE)) & (grepl('Gran',file,fixed=TRUE))){
+        #         print(paste(well,'---',file))
+        #     }
+        #         
+        # }
+    }
+    df_new
+    # Batch_No <- ifelse(sapply(tibble(Batch_No=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype'),NA, as.character(metadata_tibble$Batch.Number))
+    # Batch_No
+    
+    tb <- tibble(MFI_pos, MFI_neg_ab, MFI_neg_iso, MFI_total_ab, MFI_total_iso)
+    
+    # if(sapply(tibble(well_ID=rep(NA, len_metadata_tibble)), function(i) as.character(test_or_ref) == 'Isotype')){
+    #     metadata_tibble$Well.ID <- paste0(metadata_tibble$Row,metadata_tibble$Plate.Column)
+    #     met
+    # }
+    
+    
+    new_tibble <- tibble('concentration'=metadata_tibble$ug.test,
+                         '%+'=metadata_tibble$X..,
+                         'MFI+'=metadata_tibble$MFI.,
+                         'MFI- (Ab)'=tb$MFI_neg_ab,
+                         'MFI- (Iso)'=tb$MFI_neg_iso,
+                         'MFI total (Ab)'=MFI_total_ab,
+                         'MFI total (Iso)'=MFI_total_iso,
+                         'rSD- (Ab)'=rSD_neg_ab,
+                         'rSD- (Iso)'=rSD_neg_iso,
+                         'rSD total (Iso)'=rSD_neg_iso,
+                         'Cell.population'=metadata_tibble$pop, 
+                         # 'FCS Filename'=fcs_files$Filenames,
+                         # 'Image Names'=png_files$Filenames,
+                         'Well.or.Tube.ID'=well_ID,
+                         'Plate ID'=metadata_tibble$Plate.ID,
+                         'Target Species'=metadata_tibble$Target.Species,
+                         'Specificity'=Specificity,
+                         'Host Species'=metadata_tibble$Isotype.Host.Species,
+                         'Isotype (heavy chain)'=metadata_tibble$Isotype.Host.Species,
+                         'Isotype (light chain)'=rep(NA, len_metadata_tibble),
+                         'Pure Ab Batch'=rep(NA,len_metadata_tibble),
+                         'Clone'=Clone,
+                         'Dye Batch'=rep(NA, len_metadata_tibble),
+                         'Fluorochrome'=metadata_tibble$Fluorochrome,
+                         'Secondary Antibody name_catalog #'=rep(NA, len_metadata_tibble),
+                         'Parameter'=metadata_tibble$Parameter,
+                         'Reference or Sample'=test_or_ref,
+                         'Co-stain Specificity'=rep(NA, len_metadata_tibble),
+                         'Co-stain Clone'=rep(NA, len_metadata_tibble),
+                         'Co-stain Concentration'=rep(NA, len_metadata_tibble),
+                         'Co-stain Fluorochrome'=rep(NA, len_metadata_tibble),
+                         'Co-stain Parameter'=rep(NA, len_metadata_tibble),
+                         'Batch #'=metadata_tibble$Batch.Number,
+                         'Material #'=rep(NA, len_metadata_tibble),
+                         'Project ID #'=rep(NA, len_metadata_tibble),
+                         'Stability Timepoint'=rep(NA, len_metadata_tibble)
+    )
+    new_tibble
+    tib <- distinct(new_tibble, concentration,Well.or.Tube.ID,Cell.population, .keep_all=TRUE)
+    tib <- rename(tib,'Well or Tube ID'=Well.or.Tube.ID, 'Cell population'=Cell.population)
+    colnames(tib)
+    write.csv(tib, 'stats_file.csv')
+    # tib <- mutate_all(tib, funs(replace_na(., "")))
+    return(tib)
+}
+
+
+

@@ -1,0 +1,406 @@
+library(shiny)
+library(shinydashboard)
+library(DT)
+library(ggplot2)
+
+source('createDataFrame.R')
+source('mapping_files.R')
+
+# Layout Variables
+COLUMN_ID <- 1
+OFFSET_ID <- 1
+
+# h3('*',style = "font-weight: 500; color: #FF0000;")
+
+ui <- dashboardPage(
+    dashboardHeader(title = "Database Stats Input File",
+                    titleWidth = 250),
+    dashboardSidebar(
+        width = 250,
+        sidebarMenu(
+            menuItem("User Inputs", tabName="userInputs", icon=icon("pen")),
+            menuItem("Configure Plate Layout", tabName='plateConfig', icon=icon('th'))
+        )
+    ),
+    dashboardBody(
+        tabItems(
+            ####### User Inputs Tab #######
+            tabItem(tabName='userInputs',
+                tags$head(
+                    tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+                ),
+                fluidRow(
+                         box(width = 5, status = 'primary', solidHeader = TRUE,
+                             title = 'File Uploads',
+                             fileInput('statsUploadFile', 'Upload Stats CSV File', accept = '.csv'),
+                             fileInput('fcsUploadFile', 'Upload FCS Files', accept = '.fcs', multiple = TRUE),
+                             fileInput('pngUploadFile', 'Upload Image Files', accept = 'image*', multiple = TRUE),
+                         )),
+                fluidRow(
+                    box(width = 5, status = "primary", solidHeader = TRUE,
+                        title = "User Inputs",
+                        div(style = 'overflow-x: scroll;',
+                        radioButtons("num_cell_pops", "# of Cell Populations", choices=c(1,2,3), inline=TRUE),
+                        fluidRow(
+                          lapply(1:3, function(i){
+                            div(class = 'same-row', 
+                                
+                                selectInput(paste0('CellPop',i), paste0('Cell Pop ',i), choices=NULL, width = '100px'))
+                          }),
+                          
+                          # column(4, 
+                          #               selectInput('CellPop1', 'Cell Pop 1', choices=NULL, width = '75px')
+                          #               ),
+                          #        column(4, 
+                          #               selectInput('CellPop2', 'Cell Pop 2', choices=NULL, width = '75px')
+                          #               ),
+                          #        column(4, 
+                          #               selectInput('CellPop3', 'Cell Pop 3', choices=NULL, width = '75px')
+                          #               )
+                                 ),
+                        
+                    ))),
+                fluidRow(
+                         box(width = 5, status = "primary", solidHeader = TRUE,
+                             title = "Titrations",
+                             div(style = 'overflow-x: scroll;',
+                             radioButtons("num_titrations", "# of Titrations", choices=c(1,2,3,4,5,6,7,8), inline=TRUE),
+                                             actionButton("auto_divide", "Autofill Titrations", class = "btn-primary", style="color: #fff"),
+                                             actionButton("reset_titr", "Reset", class = "btn-primary", icon("undo-alt"), style="color: #fff"),
+                             fluidRow(
+                                      # column(COLUMN_ID, numericInput('row2_titr', '', value = 2)),
+                                      # column(COLUMN_ID, numericInput('row3_titr', '', value = 1)),
+                                      # column(COLUMN_ID, numericInput('row4_titr', '', value = NULL)),
+                                      # column(COLUMN_ID, numericInput('row5_titr', '', value = NULL)),
+                                      # column(COLUMN_ID, numericInput('row6_titr', '', value = NULL)),
+                                      # column(COLUMN_ID, numericInput('row7_titr', '', value = NULL)),
+                                      # column(COLUMN_ID, numericInput('row8_titr', '', value = NULL)),
+                                  
+                                      lapply(1:8, function(i){
+                                      div(class = 'same-row', 
+                                          
+                                            numericInput(paste0('titrate_',i), '', value = NULL, width = '75px'))
+                                          }),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      # div(class = 'same-row', numericInput('row8_titr', '', value = NULL)),
+                                      ))                     
+                         )),
+                downloadButton("downloadData", "Download Metadata CSV File"),
+                div(style = 'padding-top: 50pxl', dataTableOutput('dff_output')),
+                # tableOutput('filenames'),
+                tableOutput('df2_dt'),
+                tableOutput('df3_dt')
+                # verbatimTextOutput('statsFile'),
+                # tableOutput('fcs')
+                
+                
+                    ),
+            
+            ####### Configure Plate Layout Tab #######
+                tabItem(tabName = "plateConfig",
+                        tags$head(
+                            tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+                        ),
+                        div(class="grid",
+                            div(class = "item-space"),
+                            div(class = 'item-row-names',
+                                div(class = 'subitem-row-A', div(class = 'span','Row A')),
+                                div(class = 'subitem-row-B', div(class = 'span','Row B')),
+                                div(class = 'subitem-row-C', div(class = 'span','Row C')),
+                                div(class = 'subitem-row-D', div(class = 'span','Row D')),
+                                div(class = 'subitem-row-E', div(class = 'span','Row E')),
+                                div(class = 'subitem-row-F', div(class = 'span','Row F')),
+                                div(class = 'subitem-row-G', div(class = 'span','Row G')),
+                                div(class = 'subitem-row-H', div(class = 'span','Row H'))
+                            ),
+                            div(class = 'item-data',
+                                div(class = 'subitem-header-controlrow', div(class = 'span-header','Control Row')),
+                                div(class = 'subitem-header-targetspecies', div(class = 'span-header','Target Species')),
+                                div(class = 'subitem-header-spec',  div(class = 'span-header','Specificity')),
+                                div(class = 'subitem-header-host',  div(class = 'span-header','Host-Species')),
+                                div(class = 'subitem-header-isotype',  div(class = 'span-header','Isotype')),
+                                div(class = 'subitem-header-clone',  div(class = 'span-header','Clone')),
+                                div(class = 'subitem-header-fluor', div(class = 'span-header','Fluorochrome')),
+                                div(class = 'subitem-header-parameter', div(class = 'span-header','Parameter')),
+                                div(class = 'subitem-header-batch', div(class = 'span-header','Batch #')),
+                                div(class = 'subitem-header-spec1range', div(class = 'span-header','Spec 1 Range')),
+                                div(class = 'subitem-header-spec2range', div(class = 'span-header','Spec 2 Range')),
+                                div(class = 'subitem-header-spec3range', div(class = 'span-header','Spec 3 Range')),
+                                div(class = 'subitem-header-gatingmethod', div(class = 'span-header','Gating Method')),
+                                div(class = 'subitem-header-gatingarg', div(class = 'span-header','Gating Argument')),
+                                
+                                ########### Sub-Items ###########
+                                div(class = 'subitem-data-controlrow',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("controlRow_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-targetspecies',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("targetSpecies_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-spec',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("specificity_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-host',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("hostSpecies_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-isotype',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("isotype_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-clone',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("clone_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-fluor',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("fluorochrome_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-parameter',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("parameter_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-batch',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:13px;',textInput(paste0("batchNo_", i), "", placeholder='NA', width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-spec1range',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:13px;',textInput(paste0("spec1range_", i), "", placeholder='e.g. 50-100', width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-spec2range',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:13px;',textInput(paste0("spec2range_", i), "", placeholder='e.g. 50-100', width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-spec3range',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:13px;',textInput(paste0("spec3range_", i), "", placeholder='e.g. 50-100', width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-gatingmethod',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:11px;',selectizeInput(paste0("gatingMethod_", i), "", choices = NULL, width = '150px'))
+                                    })),
+                                div(class = 'subitem-data-gatingarg',
+                                    lapply(1:8, function(i){
+                                        div(style='padding:13px;',numericInput(paste0("gatingArg_", i), "", value=3, min=0, max=5, width = '150px'))
+                                    })))),
+                        div(style = "padding-top: 10px;", actionButton("preview_table", "Preview Plate", class = "btn-primary", icon("eye"), style="color: #fff")),
+                        div(style = 'padding-top: 20px;', dataTableOutput('mtcars_table'))
+                        
+                ) # end of tabName
+            
+                # )
+            )
+                    
+                    
+            )
+            
+)
+        
+            
+      
+
+
+server <- function(input, output, session) { 
+
+    # Update Cell Population Select Inputs
+    observeEvent(input$num_cell_pops, {
+        if(input$num_cell_pops == 1){
+            updateSelectInput(session, "CellPop1", choices = c('Lymph', 'Mono', 'Gran', 'PBMC', 'etc'))
+            updateSelectInput(session, "CellPop2", choices = NA) 
+            updateSelectInput(session, "CellPop3", choices = NA) 
+        }
+        else if(input$num_cell_pops == 2){
+            updateSelectInput(session, "CellPop1", choices = c('Lymph', 'Mono', 'Gran', 'PBMC', 'etc'))
+            updateSelectInput(session, "CellPop2", choices = c('Lymph', 'Mono', 'Gran', 'PBMC', 'etc')) 
+            updateSelectInput(session, "CellPop3", choices = NA) 
+        }
+        else{
+            updateSelectInput(session, "CellPop1", choices = c('Lymph', 'Mono', 'Gran', 'PBMC', 'etc'))
+            updateSelectInput(session, "CellPop2", choices = c('Lymph', 'Mono', 'Gran', 'PBMC', 'etc')) 
+            updateSelectInput(session, "CellPop3", choices = c('Lymph', 'Mono', 'Gran', 'PBMC', 'etc')) 
+        }
+        
+    })
+    
+    # Update # of titrations to auto-fill based on selection
+    observeEvent(input$auto_divide, {
+        if(input$num_titrations == 1){
+            updateNumericInput(session, 'titrate_1', value = 2)
+          lapply(2:8, function(i){
+            updateNumericInput(session, paste0('titrate_',i), value = NA)
+          })
+        }
+        else if(input$num_titrations == 2){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            lapply(3:8, function(i){
+              updateNumericInput(session, paste0('titrate_',i), value = NA)
+            })
+        }
+        else if(input$num_titrations == 3){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            updateNumericInput(session, 'titrate_3', value = 0.5)
+            lapply(4:8, function(i){
+              updateNumericInput(session, paste0('titrate_',i), value = NA)
+            })
+        }
+        else if(input$num_titrations == 4){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            updateNumericInput(session, 'titrate_3', value = 0.5)
+            updateNumericInput(session, 'titrate_4', value = 0.25)
+            lapply(5:8, function(i){
+              updateNumericInput(session, paste0('titrate_',i), value = NA)
+            })
+        }
+        else if(input$num_titrations == 5){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            updateNumericInput(session, 'titrate_3', value = 0.5)
+            updateNumericInput(session, 'titrate_4', value = 0.25)
+            updateNumericInput(session, 'titrate_5', value = 0.125)
+            lapply(6:8, function(i){
+              updateNumericInput(session, paste0('titrate_',i), value = NA)
+            })
+        }
+        else if(input$num_titrations == 6){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            updateNumericInput(session, 'titrate_3', value = 0.5)
+            updateNumericInput(session, 'titrate_4', value = 0.25)
+            updateNumericInput(session, 'titrate_5', value = 0.125)
+            updateNumericInput(session, 'titrate_6', value = 0.06)
+            lapply(7:8, function(i){
+              updateNumericInput(session, paste0('titrate_',i), value = NA)
+            })
+        }
+        else if(input$num_titrations == 7){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            updateNumericInput(session, 'titrate_3', value = 0.5)
+            updateNumericInput(session, 'titrate_4', value = 0.25)
+            updateNumericInput(session, 'titrate_5', value = 0.125)
+            updateNumericInput(session, 'titrate_6', value = 0.06)
+            updateNumericInput(session, 'titrate_7', value = 0.03)
+            updateNumericInput(session, 'titrate_8', value = NA)
+        }
+        else if(input$num_titrations == 8){
+            updateNumericInput(session, 'titrate_1', value = 2)
+            updateNumericInput(session, 'titrate_2', value = 1)
+            updateNumericInput(session, 'titrate_3', value = 0.5)
+            updateNumericInput(session, 'titrate_4', value = 0.25)
+            updateNumericInput(session, 'titrate_5', value = 0.125)
+            updateNumericInput(session, 'titrate_6', value = 0.06)
+            updateNumericInput(session, 'titrate_7', value = 0.03)
+            updateNumericInput(session, 'titrate_8', value = 0.015)
+          }
+        
+    })
+    observeEvent(input$reset_titr, {
+        updateNumericInput(session, 'titrate_1', value = NA)
+        updateNumericInput(session, 'titrate_2', value = NA)
+        updateNumericInput(session, 'titrate_3', value = NA)
+        updateNumericInput(session, 'titrate_4', value = NA)
+        updateNumericInput(session, 'titrate_5', value = NA)
+        updateNumericInput(session, 'titrate_6', value = NA)
+        updateNumericInput(session, 'titrate_7', value = NA)
+        updateNumericInput(session, 'titrate_8', value = NA)
+    })
+    
+    
+    
+    # output$mtcars_table <- renderTable(mtcars)
+    observeEvent(input$preview_table, {
+      output$mtcars_table <- renderDataTable(plate_table, rownames=FALSE,
+                                             options=list(scrollX=TRUE))
+    })
+    plate_table <- data.frame('Rows'=c('Row A', 'Row B', 'Row C', 'Row D', 'Row E', 'Row F', 'Row G', 'Row H'),
+                              'Control Row' = rep(NA, 8),
+                              'Target Species' = rep(NA, 8),
+                              'Specificity' = rep(NA, 8),
+                              'Host Species' = rep(NA, 8),
+                              'Isotype' = rep(NA, 8),
+                              'Clone' = rep(NA, 8),
+                              'Fluorochrome' = rep(NA, 8),
+                              'Parameter' = rep(NA, 8),
+                              'Batch No' = rep(NA, 8),
+                              'Spec 1 Range' = rep(NA, 8),
+                              'Spec 2 Range' = rep(NA, 8),
+                              'Spec 3 Range' = rep(NA, 8),
+                              'Gating Method' = rep(NA, 8),
+                              'Gating Argument' = rep(NA, 8)
+                              )
+    
+
+    
+    
+    
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        paste('hi', "table_output", ".csv", sep="")
+      },
+      content = function(file) {
+        write.csv(df_products_upload(), file, row.names = FALSE)
+      }
+    )
+
+    
+    fcs_files <- reactive({ input$fcsUploadFile$name })
+    # png_files <- reactive({ input$pngUploadFile$name })
+    
+    output$filenames <- renderTable({ fcs_files() })
+
+    fcs_output <- reactive({ 
+      inFile <- input$statsUploadFile
+      if(is.null(inFile))
+        return(NULL)
+      create_fcs_filenames(fcs_files(), inFile$datapath) 
+    })
+    
+    fcs_output2 <- reactive({
+      inFile <- input$fcsUploadFile
+      inFile2 <- input$statsUploadFile
+      map_fcs_filenames(inFile$name, inFile2$datapath)
+    })
+    
+    image_output_df <- reactive({
+      inFile <- input$pngUploadFile
+      inFile2 <- input$statsUploadFile
+      inFile3 <- input$fcsUploadFile
+      map_image_filenames(inFile$name, inFile2$datapath, map_fcs_filenames(inFile3$name, inFile2$datapath))
+    })
+    output$df2_dt <- renderTable({  fcs_output2() })
+    
+    output$df3_dt <- renderTable({  image_output_df })
+    
+    # png_output <- reactive({
+    #   inFile <- input$statsUploadFile
+    #   if(is.null(inFile))
+    #     return(NULL)
+    #   create_png_filenames(png_files(), input$statsUploadFile$datapath)  
+    # })
+    
+    df_products_upload <- reactive({
+      inFile <- input$statsUploadFile
+      if (is.null(inFile)) 
+        return(NULL)
+      dff <- create_stats_df(inFile$datapath, fcs_output())
+      return(dff)
+    })
+    
+    output$dff_output <- renderDataTable( df_products_upload() )
+    
+    output$fcs <- renderTable({ fcs_output() })
+    
+}
+
+shinyApp(ui, server)
